@@ -126,6 +126,7 @@ def create_game():
 
     created_at = datetime.now().isoformat(timespec="minutes")
 
+
     conn = get_db()
     cur = conn.execute("""
         INSERT INTO games (

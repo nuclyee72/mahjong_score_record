@@ -19,6 +19,42 @@ function calcPts(scores) {
   });
 }
 
+// ===== 시간 출력: 저장된 시간을 +9h (KST)로 바꿔서 예쁘게 표시 =====
+function formatKoreanTime(isoString) {
+  if (!isoString) return "";
+
+  // "2025-11-19T05:30" 또는 "2025-11-19 05:30" 둘 다 처리
+  const parts = isoString.split(/[T ]/);
+  if (parts.length < 2) return isoString;
+
+  const [datePart, timePart] = parts;
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+
+  if (
+    Number.isNaN(year) ||
+    Number.isNaN(month) ||
+    Number.isNaN(day) ||
+    Number.isNaN(hour) ||
+    Number.isNaN(minute)
+  ) {
+    return isoString;
+  }
+
+  // 원래 문자열을 "UTC 기준"이라고 보고 +9시간
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hour, minute));
+  const kstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+
+  const y = kstDate.getUTCFullYear();
+  const m = String(kstDate.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(kstDate.getUTCDate()).padStart(2, "0");
+  const hh = String(kstDate.getUTCHours()).padStart(2, "0");
+  const mm = String(kstDate.getUTCMinutes()).padStart(2, "0");
+
+  // 화면에 찍히는 형식: 2025-11-19 14:30
+  return `${y}-${m}-${d} ${hh}:${mm}`;
+}
+
 function createRankDistBar(rankCounts, games) {
   const total = games || 1;
   const bar = document.createElement("div");
@@ -195,8 +231,9 @@ async function loadGamesAndRanking() {
     tr.appendChild(tdId);
 
     const tdTime = document.createElement("td");
-    tdTime.textContent = g.created_at;
+    tdTime.textContent = formatKoreanTime(g.created_at);
     tr.appendChild(tdTime);
+
 
     for (let i = 0; i < 4; i++) {
       const td = document.createElement("td");
